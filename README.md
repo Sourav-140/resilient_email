@@ -54,5 +54,7 @@ Unit tests are provided to verify the functionality of the EmailService. The tes
 
 <img width="1440" alt="Screenshot 2024-08-27 at 2 21 08 AM" src="https://github.com/user-attachments/assets/b830fdcd-b444-421b-b81b-f9ca60a1c124">
 
+
+
 <img width="1440" alt="Screenshot 2024-08-27 at 2 21 15 AM" src="https://github.com/user-attachments/assets/4ff06dd7-527e-4cee-981b-59143f4e4583">
 
