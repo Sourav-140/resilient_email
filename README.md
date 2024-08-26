@@ -22,23 +22,23 @@ TypeScript is used to construct a resilient email sending service in this projec
 
 1. Clone the repository:
 
- git clone https://github.com/your-repo/email-service.git
- cd email-service
+    git clone https://github.com/your-repo/email-service.git
+    cd email-service
 
 2. Install Dependencies:
 
- npm install
+    npm install
 
 3. Run Unit Tests:
 
- npm test
+    npm test
  
 4. Using the Service:
 
-import { EmailService } from './src/EmailService';
-
-const emailService = new EmailService();
-emailService.sendEmail('recipient@example.com', 'Subject', 'Email body');
+    import { EmailService } from './src/EmailService';
+    
+    const emailService = new EmailService();
+    emailService.sendEmail('recipient@example.com', 'Subject', 'Email body');
 
 
 ## Testing
@@ -53,7 +53,8 @@ Unit tests are provided to verify the functionality of the EmailService. The tes
 - Rate limiting
 
 <img width="1440" alt="Screenshot 2024-08-27 at 2 21 08 AM" src="https://github.com/user-attachments/assets/b830fdcd-b444-421b-b81b-f9ca60a1c124">
-<br/>
+
+&ensp;
 
 <img width="1440" alt="Screenshot 2024-08-27 at 2 21 15 AM" src="https://github.com/user-attachments/assets/4ff06dd7-527e-4cee-981b-59143f4e4583">
 
