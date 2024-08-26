@@ -1,5 +1,4 @@
-// src/EmailService.ts
-import { IEmailProvider, MockEmailProvider1, MockEmailProvider2 } from './Mock_email_providers';
+import { EmailProvider, MockEmailProvider1, MockEmailProvider2 } from './Mock_email_providers';
 
 interface EmailStatus {
     success: boolean;
@@ -8,26 +7,26 @@ interface EmailStatus {
 }
 
 export class EmailService {
-    private providers: IEmailProvider[];
-    private maxRetries: number;
-    private rateLimit: number;
-    private attemptCounts: Map<string, number>;
-    private sentEmails: Set<string>;
-    private failureCounts: Map<string, number>;
-    private circuitOpen: Map<string, boolean>;
+    private providers: EmailProvider[];
+    private max_retries: number;
+    private rate_limit: number;
+    private attempt_counts: Map<string, number>;
+    private sent_emails: Set<string>;
+    private failure_counts: Map<string, number>;
+    private circuit_open: Map<string, boolean>;
 
-    constructor(maxRetries: number = 3, rateLimit: number = 5) {
+    constructor(max_retries: number = 3, rate_limit: number = 5) {
         this.providers = [new MockEmailProvider1(), new MockEmailProvider2()];
-        this.maxRetries = maxRetries;
-        this.rateLimit = rateLimit;
-        this.attemptCounts = new Map<string, number>();
-        this.sentEmails = new Set<string>();
-        this.failureCounts = new Map<string, number>();
-        this.circuitOpen = new Map<string, boolean>();
+        this.max_retries = max_retries;
+        this.rate_limit = rate_limit;
+        this.attempt_counts = new Map<string, number>();
+        this.sent_emails = new Set<string>();
+        this.failure_counts = new Map<string, number>();
+        this.circuit_open = new Map<string, boolean>();
     }
 
     private async sendWithProvider(
-        provider: IEmailProvider,
+        provider: EmailProvider,
         to: string,
         subject: string,
         body: string,
@@ -35,29 +34,29 @@ export class EmailService {
     ): Promise<boolean> {
         const providerName = provider.constructor.name;
         
-        if (this.circuitOpen.get(providerName)) {
+        if (this.circuit_open.get(providerName)) {
             console.log(`Circuit open for ${providerName}`);
             return false;
         }
 
         try {
             if (await provider.sendEmail(to, subject, body)) {
-                this.failureCounts.set(providerName, 0); // Reset failures on success
+                this.failure_counts.set(providerName, 0);   // Reset the failures count on success
                 return true;
             }
-            throw new Error('Provider failed to send email');
+            throw new Error('Provider failed to send an email');
         } catch (error) {
-            const failureCount = this.failureCounts.get(providerName) || 0;
-            this.failureCounts.set(providerName, failureCount + 1);
+            const failureCount = this.failure_counts.get(providerName) || 0;
+            this.failure_counts.set(providerName, failureCount + 1);
 
             if (this.shouldOpenCircuit(provider)) {
-                this.circuitOpen.set(providerName, true);
+                this.circuit_open.set(providerName, true);
                 console.log(`Circuit opened for ${providerName}`);
-                setTimeout(() => this.circuitOpen.set(providerName, false), 60000); // Reopen circuit after 1 minute
+                setTimeout(() => this.circuit_open.set(providerName, false), 60000);    // Reopen the circuit after one minute
             }
 
-            if (attempt < this.maxRetries) {
-                await this.delay((2 ** attempt) * 100); // Exponential backoff
+            if (attempt < this.max_retries) {
+                await this.delay((2 ** attempt) * 100);     // The exponential backoff
                 return this.sendWithProvider(provider, to, subject, body, attempt + 1);
             }
             return false;
@@ -69,16 +68,16 @@ export class EmailService {
     }
 
     private incrementAttempt(to: string): void {
-        this.attemptCounts.set(to, (this.attemptCounts.get(to) || 0) + 1);
+        this.attempt_counts.set(to, (this.attempt_counts.get(to) || 0) + 1);
     }
 
     private checkRateLimit(to: string): boolean {
-        return (this.attemptCounts.get(to) || 0) < this.rateLimit;
+        return (this.attempt_counts.get(to) || 0) < this.rate_limit;
     }
 
-    private shouldOpenCircuit(provider: IEmailProvider): boolean {
-        const failureCount = this.failureCounts.get(provider.constructor.name) || 0;
-        return failureCount >= this.maxRetries;
+    private shouldOpenCircuit(provider: EmailProvider): boolean {
+        const failureCount = this.failure_counts.get(provider.constructor.name) || 0;
+        return failureCount >= this.max_retries;
     }
 
     public async sendEmail(
@@ -87,19 +86,19 @@ export class EmailService {
         body: string
     ): Promise<EmailStatus> {
         const emailId = `${to}-${subject}-${body}`;
-        if (this.sentEmails.has(emailId)) {
+        if (this.sent_emails.has(emailId)) {
             return { success: true, attempts: 0, provider: 'Idempotency' };
         }
 
         if (!this.checkRateLimit(to)) {
-            return { success: false, attempts: this.rateLimit, provider: '' };
+            return { success: false, attempts: this.rate_limit, provider: '' };
         }
 
         for (let i = 0; i < this.providers.length; i++) {
             this.incrementAttempt(to);
             const success = await this.sendWithProvider(this.providers[i], to, subject, body);
             if (success) {
-                this.sentEmails.add(emailId);
+                this.sent_emails.add(emailId);
                 return { success: true, attempts: i + 1, provider: this.providers[i].constructor.name };
             }
         }
