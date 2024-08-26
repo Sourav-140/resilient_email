@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "api/**/*.ts",
+        "src": "resilient_email/api/**/*.ts",
         "use": "@vercel/node"
       }
     ],
     "routes": [
       {
         "src": "/api/(.*)",
-        "dest": "/api/$1"
+        "dest": "resilient_email/api/$1"
       }
     ]
   }
